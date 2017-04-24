@@ -1,7 +1,9 @@
 #include "kalman_filter.h"
+#include <iostream>       //cout
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using namespace std;
 
 #define PI 3.14159
 
@@ -55,35 +57,49 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     * // y = z - h(x')
   */
   
-  //The predicted measurement vector x​′​​ is a vector containing values in the form [​p​x​​,p​y​​,v​x​​,v​y​​​​]
+  //1. The predicted measurement vector x​′​​ is a vector containing values in the form [​p​x​​,p​y​​,v​x​​,v​y​​​​]
   // In order to calculate y for the radar sensor, we need to convert x​′​​ to polar coordinates
-  MatrixXd Ht = H_.transpose();
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-
+  
   float px = x_(0);
   float py = x_(1);
   float vx = x_(2);
   float vy = x_(3);
-  float ro = sqrt(px * px + py * py); // range
+  float rho = sqrt(px * px + py * py); // range
+  
   float phi;  //bearing
   if (px == 0 && py == 0)
     phi = 0;
-  else
+  else{
     phi = atan2(py, px);
-
-  float ro_dot; // radial velocity
-  if (ro == 0)
-    ro_dot = 0;
+    // normalization check
+    if (phi > PI){
+      cout << "Caution: phi value is greater than PI: " << phi << endl;
+      phi = phi - 2*PI;
+       
+    }
+    else if (phi < (-1*PI)){
+      cout << "Caution: phi value is smaller than -PI: " << phi << endl;
+      phi = phi + 2*PI;
+    }
+  }
+  float rho_dot; // radial rate/velocity
+  // avoiding zero division
+  if (rho == 0)
+    rho_dot = 0;
   else
-    ro_dot = (px * vx + py * vy) / ro;
+    rho_dot = (px * vx + py * vy) / rho;
   
+  // 2. Update
   VectorXd z_pred(3);
-  z_pred << ro, phi, ro_dot;
+  z_pred << rho, phi, rho_dot;
+  
   VectorXd y = z - z_pred;
+  MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd K = P_ * Ht * S.inverse();
     
   x_ = x_ + K * y;
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
 }
