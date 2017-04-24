@@ -37,7 +37,15 @@ FusionEKF::FusionEKF() {
     * Set the process and measurement noises
   */
 
+  //You'll need to initialize the Kalman Filter, 
+  //prepare the Q and F matrices for the prediction step, and call the radar and lidar update functions.
+  F = MatrixXd(2, 2);
+	F << 1, 1, 0, 1;
+  Q = MatrixXd(2, 2);
+	Q << 0, 0, 0, 0;
 
+  noise_ax = 9;
+  noise_ay = 9;
 }
 
 /**
