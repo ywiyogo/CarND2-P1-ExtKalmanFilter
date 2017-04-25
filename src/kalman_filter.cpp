@@ -62,16 +62,16 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     * update the state by using Extended Kalman Filter equations
     * // y = z - h(x')
   */
-  
+
   //1. The predicted measurement vector x​′​​ is a vector containing values in the form [​p​x​​,p​y​​,v​x​​,v​y​​​​]
   // In order to calculate y for the radar sensor, we need to convert x​′​​ to polar coordinates
-  
+
   float px = x_(0);
   float py = x_(1);
   float vx = x_(2);
   float vy = x_(3);
   float rho = sqrt(px * px + py * py); // range
-  
+
   float phi;  //bearing
   if (px == 0 && py == 0)
     phi = 0;
@@ -80,12 +80,12 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     // normalization check
     if (phi > PI){
       cout << "Caution: phi value is greater than PI: " << phi << endl;
-      phi = phi - 2*PI;
-       
+      phi = fmod(phi,(2.*PI)) - 2*PI;
+
     }
     else if (phi < (-1*PI)){
       cout << "Caution: phi value is smaller than -PI: " << phi << endl;
-      phi = phi + 2*PI;
+      phi = fmod(phi,(2.*PI)) + 2*PI;
     }
   }
   float rho_dot; // radial rate/velocity
@@ -94,16 +94,16 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     rho_dot = 0;
   else
     rho_dot = (px * vx + py * vy) / rho;
-  
+
   // 2. Update
   VectorXd z_pred(3);
   z_pred << rho, phi, rho_dot;
-  
+
   VectorXd y = z - z_pred;
   MatrixXd Ht = H_radar_.transpose();
   MatrixXd S = H_radar_ * P_ * Ht + R_radar_;
   MatrixXd K = P_ * Ht * S.inverse();
-    
+
   x_ = x_ + K * y;
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);

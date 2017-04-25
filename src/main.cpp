@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
   // used to compute the RMSE later
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
-
+  Tools tools;
   //Call the EKF-based fusion
   size_t N = measurement_pack_list.size();
   for (size_t k = 0; k < N; ++k) {
@@ -165,10 +165,11 @@ int main(int argc, char* argv[]) {
 
     estimations.push_back(fusionEKF.ekf_.x_);
     ground_truth.push_back(gt_pack_list[k].gt_values_);
+    cout << "Accuracy - RMSE:" << endl << tools.CalculateRMSE(estimations, ground_truth) << endl;
   }
 
   // compute the accuracy (RMSE)
-  Tools tools;
+
   cout << "Accuracy - RMSE:" << endl << tools.CalculateRMSE(estimations, ground_truth) << endl;
 
   // close files
