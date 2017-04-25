@@ -47,6 +47,7 @@ private:
   
   Eigen::MatrixXd F;
   Eigen::MatrixXd Q;
+  Eigen::MatrixXd P;
   float noise_ax, noise_ay;
 };
 
